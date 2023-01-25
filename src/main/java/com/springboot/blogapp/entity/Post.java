@@ -1,11 +1,13 @@
 package com.springboot.blogapp.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+import java.util.HashSet;
+import java.util.Set;
+
+@Getter
+@Setter
 @AllArgsConstructor
 @Entity
 @Table(name = "posts",uniqueConstraints = {@UniqueConstraint(columnNames = "title")})
@@ -21,5 +23,8 @@ public class Post {
     private String description;
     @Column(name = "content",nullable = false)
     private String content;
+
+    @OneToMany(mappedBy = "post",cascade = CascadeType.ALL,orphanRemoval = true)
+    private Set<Comment> comments = new HashSet<>();
 
 }
