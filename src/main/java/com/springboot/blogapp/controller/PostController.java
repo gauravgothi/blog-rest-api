@@ -6,6 +6,7 @@ import com.springboot.blogapp.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class PostController {
     }
 
     //Create post of blog rest api
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<PostDto> createPost(@Valid @RequestBody PostDto postDto)  {
         return new ResponseEntity<>(postService.createPost(postDto), HttpStatus.CREATED);
@@ -46,6 +48,7 @@ public class PostController {
     }
 
     //update post by id rest api
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<PostDto> updatePost(@Valid @RequestBody PostDto postDto,@PathVariable(name = "id") long id)  {
         PostDto postResponse = postService.updatePost(postDto,id);
@@ -53,6 +56,7 @@ public class PostController {
     }
 
     //delete post by id rest api
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePost(@PathVariable(value = "id") Long id)   {
 
