@@ -22,4 +22,6 @@ public class PostDto {
     private String content;
     //Default class modelmapper work here it automatically fetch all comments of particular post
     private Set<CommentDto> comments;
+
+    private Long categoryId;
 }

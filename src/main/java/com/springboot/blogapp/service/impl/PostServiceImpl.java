@@ -2,8 +2,10 @@ package com.springboot.blogapp.service.impl;
 
 import com.springboot.blogapp.dto.PostDto;
 import com.springboot.blogapp.dto.PostResponse;
+import com.springboot.blogapp.entity.Category;
 import com.springboot.blogapp.entity.Post;
 import com.springboot.blogapp.exception.ResourceNotFoundException;
+import com.springboot.blogapp.repository.CategoryRepository;
 import com.springboot.blogapp.repository.PostRepository;
 import com.springboot.blogapp.service.PostService;
 import org.modelmapper.ModelMapper;
@@ -24,28 +26,29 @@ public class PostServiceImpl implements PostService {
     private ModelMapper mapper;
     private PostRepository postRepository;
 
-    public PostServiceImpl(PostRepository postRepository,ModelMapper mapper) {
+    private CategoryRepository categoryRepository;
+
+    public PostServiceImpl(PostRepository postRepository,ModelMapper mapper,CategoryRepository categoryRepository) {
         this.postRepository = postRepository;
         this.mapper=mapper;
+        this.categoryRepository=categoryRepository;
     }
 
     @Override
     public PostDto createPost(PostDto postDto) {
 
-        //check for if title already exist otherwise on object creation id is incremented
-        List<Post> posts = postRepository.findByTitle(postDto.getTitle());
-        if(posts.isEmpty()) {
+        Category category = categoryRepository.findById(postDto.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category","id", postDto.getCategoryId()));
 
             Post post = convertPostDtoToPost(postDto);
+            post.setCategory(category);
             Post newPost = postRepository.save(post);
 
             //convert entity to again in PostDTO for giving response
             PostDto postResponce = convertPostToPostDto(newPost);
 
             return postResponce;
-        }
-        postDto.setTitle("Your Title is duplicate");
-        return postDto;
+
     }
 
     @Override
@@ -83,11 +86,17 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDto updatePost(PostDto postDto, long id) {
+
         //get post by id from database if id not exist we will throw exception
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post","id",id));
+
+        Category category = categoryRepository.findById(postDto.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category","id", postDto.getCategoryId()));
+
         post.setTitle(postDto.getTitle());
         post.setDescription(postDto.getDescription());
         post.setContent(postDto.getContent());
+        post.setCategory(category);
 
         Post updatedPost = postRepository.save(post);
         return convertPostToPostDto(updatedPost);
@@ -99,6 +108,17 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post","id",id));
         postRepository.delete(post);
 
+    }
+
+    //Get all posts by category id
+    @Override
+    public List<PostDto> getPostByCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                         .orElseThrow(()-> new ResourceNotFoundException("Category","id",categoryId));
+
+        List<Post> posts = postRepository.findByCategoryId(categoryId);
+
+        return posts.stream().map((post) -> convertPostToPostDto(post)).collect(Collectors.toList());
     }
 
 
